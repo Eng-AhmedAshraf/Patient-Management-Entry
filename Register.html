@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+    <link rel="stylesheet" href="Styles/Register.css">
+  </head>
+
+  <body>
+    <div class="register-container">
+      <h2>Create Account</h2>
+
+      <form id="registerForm" onsubmit="event.preventDefault(); registerUser();">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input id="email" type="email" autocomplete="username" />
+          <span class="error" id="emailError"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="password-container">
+            <input id="password" type="password" autocomplete="new-password" />
+            <button type="button" class="toggle-password" data-target="password">
+              <!-- eye SVG -->
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+          <span class="error" id="passwordError"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="confirmPassword">Confirm Password</label>
+          <div class="password-container">
+            <input id="confirmPassword" type="password" autocomplete="new-password" />
+            <button type="button" class="toggle-password" data-target="confirmPassword">
+              <!-- eye SVG -->
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+          <span class="error" id="confirmPasswordError"></span>
+        </div>
+
+        <button type="submit" class="btn">Register</button>
+      </form>
+
+<div id="registerError"></div>
+<div id="successMsg"></div>
+
+      <div class="link">
+        Already have an account? <a href="index.html">Login</a>
+      </div>
+
+      <div id="registerError"></div>
+      <div id="successMsg"></div>
+    </div>
+
+    <!-- Firebase (compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-auth-compat.js"></script>
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyD63tKW59G9o7PDA6UmAiCJVYG4EQsImy4",
+        authDomain: "patient-data-8e9df.firebaseapp.com",
+        projectId: "patient-data-8e9df",
+        storageBucket: "patient-data-8e9df.firebasestorage.app",
+        messagingSenderId: "221770876835",
+        appId: "1:221770876835:web:47750c283c244ab2347c16",
+        measurementId: "G-6RS0ENTL2Y"
+      };
+
+      firebase.initializeApp(firebaseConfig);
+      const auth = firebase.auth();
+
+      // Toggle password visibility for any button .toggle-password
+      const eyeSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>`;
+      const eyeOffSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a20.8 20.8 0 0 1 5.22-6.16"/><path d="M1 1l22 22"/></svg>`;
+
+      document.querySelectorAll('.toggle-password').forEach(btn=>{
+        btn.addEventListener('click', () => {
+          const targetId = btn.dataset.target;
+          const input = document.getElementById(targetId);
+          if (!input) return;
+          if (input.type === 'password') {
+            input.type = 'text';
+            btn.innerHTML = eyeOffSvg;
+            btn.setAttribute('aria-pressed','true');
+          } else {
+            input.type = 'password';
+            btn.innerHTML = eyeSvg;
+            btn.setAttribute('aria-pressed','false');
+          }
+        });
+      });
+
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/;
+
+      async function registerUser() {
+        // Clear previous errors
+        document.getElementById('emailError').textContent = '';
+        document.getElementById('passwordError').textContent = '';
+        document.getElementById('confirmPasswordError').textContent = '';
+        document.getElementById('registerError').textContent = '';
+        document.getElementById('successMsg').textContent = '';
+
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+
+        let valid = true;
+
+        if (!email) {
+          document.getElementById('emailError').textContent = 'Email is required';
+          valid = false;
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          document.getElementById('emailError').textContent = 'Enter a valid email';
+          valid = false;
+        }
+
+        if (!password) {
+          document.getElementById('passwordError').textContent = 'Password is required';
+          valid = false;
+        } else if (password.length < 6) {
+          document.getElementById('passwordError').textContent = 'Password must be 8+ chars, include upper, lower, number, and special (!@#$%^&*)';
+          valid = false;
+        }
+
+        if (!confirmPassword) {
+          document.getElementById('confirmPasswordError').textContent = 'Confirm password';
+          valid = false;
+        } else if (password !== confirmPassword) {
+          document.getElementById('confirmPasswordError').textContent = 'Passwords do not match';
+          valid = false;
+        }
+
+        if (!valid) return;
+
+        try {
+          await auth.createUserWithEmailAndPassword(email, password);
+
+          document.getElementById("successMsg").textContent = "Account created successfully!";
+          setTimeout(() => {
+            window.location.href = "index.html";
+          }, 1500);
+        } catch (error) {
+          //Error handling for registration with existing email
+          if (error.code === "auth/email-already-in-use") {
+            document.getElementById("emailError").textContent = "Email is already exists";
+          } else if (error.code === "auth/invalid-email") {
+            document.getElementById("emailError").textContent = "Enter a valid email address";
+          } else {
+            document.getElementById("registerError").textContent = error.message;
+          }
+        }
+      }
+
+      // Clear errors when typing
+      ['email','password','confirmPassword'].forEach(id=>{
+        document.getElementById(id).addEventListener('input', ()=>{
+          document.getElementById(id+'Error').textContent='';
+          document.getElementById('registerError').textContent='';
+          document.getElementById('successMsg').textContent='';
+        });
+      });
+    </script>
+  </body>
+</html>

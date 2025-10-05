@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Details</title>
+
+    <link rel="stylesheet" href="Styles/Patient.css">
+  </head>
+
+  <body>
+    <div class="patient-container">
+      <form onsubmit="event.preventDefault(); updatePatient();">
+        <div class="top-row">
+          <div class="field-group">
+            <label for="patientId">Patient ID</label>
+            <input type="text" id="patientId" disabled>
+          </div>
+          <div class="field-group">
+            <label for="name">Patient Name</label>
+            <input type="text" id="name" placeholder="Enter name">
+            <span class="error" id="nameError"></span>
+          </div>
+          <div class="field-group">
+            <label for="age">Patient Age</label>
+            <input type="number" id="age" placeholder="Enter age">
+            <span class="error" id="ageError"></span>
+          </div>
+        </div>
+
+        <div class="field-group" style="margin-top:10px;">
+          <label for="phone">Phone Number</label>
+          <input type="text" id="phone" placeholder="Enter phone number">
+          <span class="error" id="phoneError"></span>
+        </div>
+
+        <div class="full-row">
+          <label for="history">Medical History</label>
+          <textarea id="history" placeholder="Enter medical history..." oninput="autoGrow(this)"></textarea>
+        </div>
+        <div class="grid-row">
+          <div class="full-row">
+            <label for="complain">Complain</label>
+            <textarea id="complain" placeholder="Enter complain..." oninput="autoGrow(this)"></textarea>
+          </div>
+          <div class="full-row">
+            <label for="suspDiag">Susp. Diag.</label>
+            <textarea id="suspDiag" placeholder="Enter suspected diagnosis..." oninput="autoGrow(this)"></textarea>
+          </div>
+        </div>
+        <div class="grid-row">
+          <div class="full-row">
+            <label for="requiredAnalysis">Required Analysis</label>
+            <textarea id="requiredAnalysis" placeholder="Enter required analysis..." oninput="autoGrow(this)"></textarea>
+          </div>
+          <div class="full-row">
+            <label for="treatment">Treatment</label>
+            <textarea id="treatment" placeholder="Enter treatment..." oninput="autoGrow(this)"></textarea>
+          </div>
+        </div>
+
+        <div class="field-group" style="margin-top:10px;">
+          <label for="consultationDate">Consultation Date</label>
+          <input type="date" id="consultationDate">
+          <span class="error" id="consultationDateError"></span>
+        </div>
+
+        <div class="btn-row">
+          <button type="submit" class="btn update-btn">Update</button>
+          <button type="button" class="btn back-btn" onclick="goBack()">Back to List</button>
+        </div>
+      </form>
+    </div>
+
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-auth-compat.js"></script>
+
+    <script>
+      // Firebase config
+      const firebaseConfig = {
+        apiKey: "AIzaSyD63tKW59G9o7PDA6UmAiCJVYG4EQsImy4",
+        authDomain: "patient-data-8e9df.firebaseapp.com",
+        projectId: "patient-data-8e9df",
+        storageBucket: "patient-data-8e9df.firebasestorage.app",
+        messagingSenderId: "221770876835",
+        appId: "1:221770876835:web:47750c283c244ab2347c16",
+        measurementId: "G-6RS0ENTL2Y"
+      };
+
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+      const auth = firebase.auth();
+
+
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get("id");
+      let currentUser = null;
+
+      auth.onAuthStateChanged(async (user) => {
+        if (user) {
+          currentUser = user;
+          await loadPatient(user.uid);
+        } else {
+          alert("Please log in to access this page.");
+          window.location.href = "index.html"; // redirect if no user
+        }
+      });
+
+      async function loadPatient(uid) {
+        const doc = await db.collection("users").doc(uid).collection("patients").doc(id).get();
+        if (doc.exists) {
+          const patient = doc.data();
+          document.getElementById("patientId").value = id || "";
+          document.getElementById("name").value = patient.name || "";
+          document.getElementById("age").value = patient.age || "";
+          document.getElementById("phone").value = patient.phone || "";
+          document.getElementById("consultationDate").value = patient.consultationDate || "";
+          document.getElementById("treatment").value = patient.treatment || "";
+          document.getElementById("history").value = patient.history || "";
+          document.getElementById("complain").value = patient.complain || "";
+          document.getElementById("suspDiag").value = patient.suspDiag || "";
+          document.getElementById("requiredAnalysis").value = patient.requiredAnalysis || "";
+        }
+      }
+
+      function autoGrow(textarea) {
+        textarea.style.height = "auto";
+        textarea.style.height = textarea.scrollHeight + "px";
+      }
+
+      async function updatePatient() {
+        if (!currentUser) return;
+
+        const name = document.getElementById("name").value.trim();
+        const age = parseInt(document.getElementById("age").value.trim());
+        const phone = document.getElementById("phone").value.trim();
+        const consultationDate = document.getElementById("consultationDate").value.trim();
+        const treatment = document.getElementById("treatment").value.trim();
+        const history = document.getElementById("history").value.trim();
+        const complain = document.getElementById("complain").value.trim();
+        const suspDiag = document.getElementById("suspDiag").value.trim();
+        const requiredAnalysis = document.getElementById("requiredAnalysis").value.trim();
+
+        // Clear old errors
+        document.getElementById("nameError").textContent = "";
+        document.getElementById("ageError").textContent = "";
+        document.getElementById("phoneError").textContent = "";
+
+        let valid = true;
+
+        if (!name) {
+          document.getElementById("nameError").textContent = "Name is required";
+          valid = false;
+        }
+
+        if (!age) {
+          document.getElementById("ageError").textContent = "Age is required";
+          valid = false;
+        } else if (age < 1 || age > 100) {
+          document.getElementById("ageError").textContent = "Age must be between 1 and 100";
+          valid = false;
+        }
+
+        const phonePattern = /^\+?\d{7,15}$/;
+        if (!phone) {
+          document.getElementById("phoneError").textContent = "Phone number is required";
+          valid = false;
+        } else if (!phonePattern.test(phone)) {
+          document.getElementById("phoneError").textContent = "Enter a valid phone number (7–15 digits)";
+          valid = false;
+        }
+
+        if (!valid) return;
+
+        const now = new Date();
+        const updatedAt = now.toLocaleString();
+
+        await db.collection("users").doc(currentUser.uid).collection("patients").doc(id).update({
+          name, age, phone, treatment, history, complain, suspDiag, requiredAnalysis, consultationDate, updatedAt
+        });
+
+        window.location.href = "Main.html";
+      }
+
+      function goBack() {
+        window.location.href = "Main.html";
+      }
+    </script>
+  </body>
+</html>

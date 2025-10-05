@@ -1,0 +1,259 @@
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background: rgb(184, 182, 182);
+  margin: 0;
+  padding: 0;
+  color: #333;
+}
+
+header {
+  background: #1976d2;
+  color: white;
+  padding: 0.8rem 2rem;
+}
+
+.header-content {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr; /* left | center | right */
+  align-items: center;
+  position: relative;
+}
+
+.header-title {
+  grid-column: 2; /* always center column */
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.logout-btn {
+  grid-column: 3; /* right side */
+  justify-self: end;
+  background: #e53935;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.95rem;
+  transition: background 0.2s;
+}
+
+.logout-btn:hover {
+  background: #c62828;
+}
+
+.container {
+  max-width: 1000px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.form-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  margin-bottom: 1.5rem;
+}
+
+.form-row {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-row label {
+  font-weight: 500;
+  display: block;
+  margin-bottom: 0.3rem;
+}
+
+.form-row input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.error {
+  color: red;
+  font-size: 0.85rem;
+  margin-top: 0.3rem;
+  display: block;
+}
+
+button {
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.add-btn {
+  background: #1976d2;
+  color: white;
+}
+
+.add-btn:hover {
+  background: #135ba1;
+}
+
+/* --- The Search Box --- */
+.search-box {
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+.search-box input {
+  width: 100%;
+  max-width: 400px;
+  padding: 0.7rem;
+  border: 1px solid #bbb;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+/* --- The List --- */
+.patient-list {
+  display: grid;
+  gap: 1rem;
+}
+
+/* --- The Patient Cards --- */
+.patient-card {
+  background: white;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.patient-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.delete-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.delete-btn svg {
+  fill: red;
+  width: 20px;
+  height: 20px;
+}
+
+.patient-info p {
+  margin: 0.3rem 0;
+  font-size: 0.95rem;
+}
+
+.patient-info p strong {
+  color: #1976d2;
+}
+
+.card-field {
+  background: #e3f0fc;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 4px;
+  box-sizing: border-box;
+}
+
+.card-title {
+  font-weight: bold;
+  font-size: 1.05rem;
+  display: block;
+  margin-bottom: 2px;
+  color: #1976d2;
+  text-decoration: underline blue;
+  text-decoration-thickness: 2px;
+}
+
+.added-time {
+  color: gray;
+  font-size: 0.9rem;
+  margin-top: -5px;
+  font-weight: bold;
+}
+
+.updated-time {
+  color: green;
+  font-size: 0.9rem;
+  margin-top: -5px;
+  font-weight: bold;
+}
+
+.consultation-date {
+  color: orange;
+  font-size: 0.95rem;
+  font-weight: bold;
+}
+
+/* --- The Modal --- */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  width: 300px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.modal-buttons {
+  margin-top: 15px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.cancel-btn, .confirm-btn {
+  flex: 1;
+  padding: 8px;
+  margin: 0 5px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.cancel-btn {
+  background: #ddd;
+  color: #333;
+}
+
+.cancel-btn:hover {
+  background: #bbb;
+}
+
+.confirm-btn {
+  background: red;
+  color: white;
+}
+
+.confirm-btn:hover {
+  background: darkred;
+}

@@ -1,0 +1,195 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f9;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.login-container {
+    background: #fff;
+    padding: 30px 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    width: 380px;
+    max-width: 98vw;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+h2 {
+    text-align: center;
+    color: #1976d2;
+    margin: 0 0 6px 0;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 8px;
+}
+
+label {
+    font-weight: bold;
+    color: #1976d2;
+    margin-bottom: 6px;
+    font-size: 14px;
+}
+
+input {
+    background: #eee;
+    color: #222;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 15px;
+    outline: none;
+}
+
+input:focus {
+    border-color: #1976d2;
+    box-shadow: 0 0 0 3px rgba(25,118,210,0.06);
+}
+
+/* The Eye Icon Button */
+.password-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.password-container input {
+    width: 100%;
+    padding: 10px;
+    padding-right: 44px; /* space for the eye */
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    background: #eee;
+    font-size: 15px;
+    outline: none;
+}
+
+.password-container input:focus {
+    box-shadow: 0 0 0 4px rgba(25,118,210,0.06);
+    border-color: #1976d2;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    color: #555;
+}
+
+.toggle-password:hover {
+    color: #1976d2;
+}
+
+.error {
+    color: red;
+    font-size: 13px;
+    margin-top: 6px;
+    display: block;
+    min-height: 18px;
+}
+
+.btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-weight: bold;
+    background: #1976d2;
+    color: white;
+    margin-top: 6px;
+}
+
+.btn:hover {
+    background: #135ba1;
+}
+
+.link {
+    text-align: center;
+    margin-top: 8px;
+    font-size: 14px;
+}
+
+.link a {
+    color: #1976d2;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.link a:hover {
+    text-decoration: underline;
+}
+
+/* Forgot Password Link */
+.forgot-password {
+  text-align: center;
+  margin-top: 10px;
+}
+
+.forgot-password a {
+  color: #1976d2;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.forgot-password a:hover {
+  text-decoration: underline;
+}
+
+#resetSuccess {
+  display: block;         /* make it behave like a div */
+  text-align: center;     /* center the text */
+  margin-top: 10px;       /* a little spacing */
+  font-weight: bold;      /* make it pop */
+  color: green;         /* already inlined, but better to keep it here */
+}
+#resetError {
+  display: block;
+  text-align: center;
+  margin-top: 10px;
+  color: red;
+}
+
+#loginError {
+    color: red;
+    text-align: center;
+    margin-top: 6px;
+    min-height: 18px;
+}
+
+/* The Login Success and Unsuccessful Messages */
+#loginError, #successMsg {
+  display: block;
+  text-align: center;
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+#loginError {
+  color: red;
+}
+
+#successMsg {
+  color: green;
+}

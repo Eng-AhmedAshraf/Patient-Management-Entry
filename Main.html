@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Management</title>
+
+    <link rel="stylesheet" href="Styles/Main.css">
+  </head>
+
+  <body>
+    <div style="position:absolute;top:5px;left:20px;z-index:10;">
+      <img src="Images/The Logo.png" alt="Logo" style="height:50px;">
+    </div>
+    
+    <header>
+      <div class="header-content">
+        <span class="header-title">Patient Management</span>
+        <button onclick="logout()" class="logout-btn">Logout</button>
+      </div>
+    </header>
+
+    <div class="container">
+      <!-- Add Patient Form -->
+      <div class="form-card">
+        <div class="form-row">
+          <div style="flex:1">
+            <label for="name">Name</label>
+            <input type="text" id="name" placeholder="Enter patient name">
+            <span class="error" id="nameError"></span>
+          </div>
+
+          <div style="flex:1">
+            <label for="age">Age</label>
+            <input type="number" id="age" placeholder="Enter age">
+            <span class="error" id="ageError"></span>
+          </div>
+
+          <div style="flex:1">
+            <label for="phone">Phone Number</label>
+            <input type="text" id="phone" placeholder="Enter phone number">
+            <span class="error" id="phoneError"></span>
+          </div>
+        </div>
+        <button class="add-btn" onclick="addPatient()">+ Add Patient</button>
+      </div>
+
+      <!-- Search -->
+      <div class="search-box">
+        <input type="text" id="search" placeholder="Search patient by name, phone, or ID">
+      </div>
+
+      <!-- Patient List -->
+      <div class="patient-list" id="patientList"></div>
+    </div>
+
+    <!-- Delete Modal -->
+    <div id="deleteModal" class="modal">
+      <div class="modal-content">
+        <p>Are you sure you want to delete this patient?</p>
+        <div class="modal-buttons">
+          <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+          <button class="confirm-btn" onclick="confirmDelete()">Delete</button>
+        </div>
+      </div>
+    </div>
+
+
+
+    <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-auth-compat.js"></script>
+
+
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyD63tKW59G9o7PDA6UmAiCJVYG4EQsImy4",
+        authDomain: "patient-data-8e9df.firebaseapp.com",
+        projectId: "patient-data-8e9df",
+        storageBucket: "patient-data-8e9df.firebasestorage.app",
+        messagingSenderId: "221770876835",
+        appId: "1:221770876835:web:47750c283c244ab2347c16",
+        measurementId: "G-6RS0ENTL2Y"
+      };
+      
+      firebase.initializeApp(firebaseConfig);
+
+      const db = firebase.firestore();
+      const auth = firebase.auth();
+
+      let currentUser = null;
+      let patients = [];
+      let patientToDelete = null;
+
+      // Protect page – only logged in users
+      auth.onAuthStateChanged(user => {
+        if (!user) {
+          window.location.href = "index.html";
+        } else {
+          currentUser = user;
+          loadPatients();
+        }
+      });
+
+      async function logout() {
+        try {
+          await auth.signOut();
+          window.location.href = "index.html";
+        } catch (error) {
+          console.error("Logout Error:", error.message);
+          alert("Failed to logout. Please try again.");
+        }
+      }
+
+      function formatDate(dateStr) {
+        if (!dateStr) return "";
+        const d = new Date(dateStr);
+        if (isNaN(d)) return dateStr;
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        const yyyy = d.getFullYear();
+        return `${mm}/${dd}/${yyyy}`;
+      }
+
+      async function loadPatients() {
+        if (!currentUser) return;
+        const snapshot = await db.collection("users")
+          .doc(currentUser.uid)
+          .collection("patients")
+          .orderBy("addedAt", "asc")
+          .get();
+
+        patients = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        displayPatients(patients);
+      }
+
+      async function addPatient() {
+        if (!currentUser) return;
+
+        const name = document.getElementById("name").value.trim();
+        const age = parseInt(document.getElementById("age").value.trim());
+        const phone = document.getElementById("phone").value.trim();
+
+        document.getElementById("nameError").textContent = "";
+        document.getElementById("ageError").textContent = "";
+        document.getElementById("phoneError").textContent = "";
+
+        let valid = true;
+
+        if (!name) {
+          document.getElementById("nameError").textContent = "Name is required";
+          valid = false;
+        }
+
+        if (!age) {
+          document.getElementById("ageError").textContent = "Age is required";
+          valid = false;
+        } else if (age < 1 || age > 100) {
+          document.getElementById("ageError").textContent = "Age must be between 1 and 100";
+          valid = false;
+        }
+
+        const phonePattern = /^\+?\d{7,15}$/;
+        if (!phone) {
+          document.getElementById("phoneError").textContent = "Phone number is required";
+          valid = false;
+        } else if (!phonePattern.test(phone)) {
+          document.getElementById("phoneError").textContent = "Enter a valid phone number (7–15 digits)";
+          valid = false;
+        }
+
+        if (!valid) return;
+
+        // Generate new ID per user
+        const id = await generateNewId();
+        const now = new Date();
+        const addedAt = now.toLocaleString();
+
+        await db.collection("users").doc(currentUser.uid)
+          .collection("patients").doc(id).set({
+            name, age, phone, addedAt,
+            updatedAt: "", treatment: "", history: ""
+          });
+
+        document.getElementById("name").value = "";
+        document.getElementById("age").value = "";
+        document.getElementById("phone").value = "";
+
+        window.location.href = `patient.html?id=${id}`;
+      }
+
+      async function generateNewId() {
+        if (!currentUser) return "P-001";
+
+        const snapshot = await db.collection("users")
+          .doc(currentUser.uid)
+          .collection("patients")
+          .orderBy("addedAt", "asc").get();
+
+        if (snapshot.empty) return "P-001";
+        const lastDoc = snapshot.docs[snapshot.docs.length - 1];
+        const lastIdNum = parseInt(lastDoc.id.split("-")[1]);
+        const newIdNum = lastIdNum + 1;
+        return "P-" + String(newIdNum).padStart(3, "0");
+      }
+
+      function displayPatients(list) {
+        const patientList = document.getElementById("patientList");
+        patientList.innerHTML = "";
+
+        list.forEach(patient => {
+          const card = document.createElement("div");
+          card.className = "patient-card";
+          card.onclick = () => window.location.href = `patient.html?id=${patient.id}`;
+
+          const deleteBtn = document.createElement("button");
+          deleteBtn.className = "delete-btn";
+          deleteBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6zm2 3h14l-1.5 12.5a1 1 0 0 1-1 .5H7a1 1 0 0 1-1-.5L4 9zm5 2v8h2v-8H9zm4 0v8h2v-8h-2z"/></svg>`;
+          deleteBtn.onclick = (e) => {
+            e.stopPropagation();
+            deletePatient(patient.id);
+          };
+          card.appendChild(deleteBtn);
+
+          const info = document.createElement("div");
+          info.className = "patient-info";
+
+          info.innerHTML = `
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:18px;margin-bottom:10px;">
+              <div class="card-field"><span class="card-title">ID:</span> ${patient.id}</div>
+              <div class="card-field"><span class="card-title">Name:</span> ${patient.name}</div>
+              <div class="card-field"><span class="card-title">Age:</span> ${patient.age}</div>
+              <div class="card-field"><span class="card-title">Phone:</span> ${patient.phone || ""}</div>
+            </div>
+          `;
+
+          if (patient.history) {
+            info.innerHTML += `
+              <div class="card-field" style="margin-bottom:10px;">
+                <span class="card-title">Medical History:</span>
+                <div>${patient.history.replace(/\n/g,"<br>")}</div>
+              </div>
+            `;
+          }
+
+          if (patient.complain || patient.suspDiag) {
+            info.innerHTML += `
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:10px;">
+                ${patient.complain ? `<div class="card-field"><span class="card-title">Complain:</span><div>${patient.complain.replace(/\n/g,"<br>")}</div></div>` : ""}
+                ${patient.suspDiag ? `<div class="card-field"><span class="card-title">Susp. Diag.:</span><div>${patient.suspDiag.replace(/\n/g,"<br>")}</div></div>` : ""}
+              </div>
+            `;
+          }
+
+          if (patient.requiredAnalysis || patient.treatment) {
+            info.innerHTML += `
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:10px;">
+                ${patient.requiredAnalysis ? `<div class="card-field"><span class="card-title">Required Analysis:</span><div>${patient.requiredAnalysis.replace(/\n/g,"<br>")}</div></div>` : ""}
+                ${patient.treatment ? `<div class="card-field"><span class="card-title">Treatment:</span><div>${patient.treatment.replace(/\n/g,"<br>")}</div></div>` : ""}
+              </div>
+            `;
+          }
+
+          info.innerHTML += `
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
+              <div class="card-field added-time"><span class="card-title">Added Date:</span> ${patient.addedAt}</div>
+              <div class="card-field updated-time"><span class="card-title">Updated Date:</span> ${patient.updatedAt || ""}</div>
+            </div>
+            ${patient.consultationDate ? `<div class="card-field consultation-date" style="margin-top:8px;"><span class="card-title">Consultation Date:</span><div>${formatDate(patient.consultationDate)}</div></div>` : ""}
+          `;
+
+          card.appendChild(info);
+          patientList.appendChild(card);
+        });
+      }
+
+      function deletePatient(id) {
+        patientToDelete = id;
+        document.getElementById("deleteModal").style.display = "flex";
+      }
+
+      function closeModal() {
+        patientToDelete = null;
+        document.getElementById("deleteModal").style.display = "none";
+      }
+
+      async function confirmDelete() {
+        if (patientToDelete && currentUser) {
+          await db.collection("users").doc(currentUser.uid)
+            .collection("patients").doc(patientToDelete).delete();
+          await loadPatients();
+        }
+        closeModal();
+      }
+
+      document.getElementById("search").addEventListener("input", function () {
+        const searchValue = this.value.trim().toLowerCase();
+        const filtered = patients.filter(p =>
+          p.name.toLowerCase().includes(searchValue) ||
+          (p.phone && p.phone.includes(searchValue)) ||
+          (p.id && p.id.toLowerCase().includes(searchValue))
+        );
+        displayPatients(filtered);
+      });
+    </script>
+  </body>
+</html>
